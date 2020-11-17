@@ -19,8 +19,6 @@ from LSMs.PLSM_v6 import PLSM as LSM
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-#STDP pipeline#---------------------------------------------------------------------------------------------------------
-
 def get_piecewise_mean_spike_count_data(spike_train, window_size = 32):
 	assert spike_train.size(1)%window_size == 0
 
