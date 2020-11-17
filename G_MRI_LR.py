@@ -89,7 +89,7 @@ datafiles = ['PLSM_readout_100timesteps']
 input_channels=[100]
 for file_idx, filename in enumerate(datafiles):
     
-
+    #If problem arises due to base_path, remove the base_path variables from os.path.join() functions in lines 94,95,96
     print('\n\n\n Training for :  '+filename+'_64 kernels')
     train_data_path = os.path.join(base_path,'MRI_data',filename,'train')
     val_data_path = os.path.join(base_path,'MRI_data',filename,'val')
@@ -174,9 +174,6 @@ for file_idx, filename in enumerate(datafiles):
                             loss.backward()
                             optimizer.step()
                             optimizer.zero_grad()
-
-                        #print([torch.argmax(p.detach(),dim=1).item() for p in MRI_CNN_pred_buffer])
-                        #print([l.item() for l in MRI_CNN_label_buffer])
 
                         MRI_CNN_label_buffer, MRI_CNN_pred_buffer = [], []
                         samples = 0
