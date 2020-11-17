@@ -11,18 +11,16 @@ import time
 import os
 
 from MRI_txt_dataloader import MRI_LR_video_dataloader
-#train_data_path = '/home/cvpr/Documents/Dipayan/DD/MRI_data/train/video_wise_cubic_data/'
-#val_data_path = '/home/cvpr/Documents/Dipayan/DD/MRI_data/val/video_wise_cubic_data/'
-#model_path = '/home/cvpr/Documents/Dipayan/DD/saved_models/'
-
+print('Path example : home/username/Downloads/Parallelized_LSM_for_Unintentional_Action_Recognition')
+base_path = input('Enter the absolute path to the PLSM folder, including the name of the PLSM folder (like above example):')
 device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
 class CNNModel(nn.Module):
     def __init__(self, input_channel):
         super(CNNModel, self).__init__()
         
-        self.conv_layer1 = self._conv_layer_set(input_channel, 128)
-        self.fc_2 = nn.Linear(128,3)
+        self.conv_layer1 = self._conv_layer_set(input_channel, 64)
+        self.fc_2 = nn.Linear(64,3)
         self.softmax = nn.Softmax(dim=1)
         
     def _conv_layer_set(self, in_c, out_c):
@@ -87,17 +85,15 @@ def get_mask(clip_idx=None, last_output=None, mask_element=0):
         elif last_output == 2:
             return torch.tensor([[mask_element,mask_element,1.0]])
 
-
-
-datafiles = ['ablation_100timesteps']
+datafiles = ['PLSM_readout_100timesteps']
 input_channels=[100]
 for file_idx, filename in enumerate(datafiles):
     
 
-    print('\n\n\n Training for :  '+filename+' 128 kernels')
-    train_data_path = os.path.join('/home/cvpr/Documents/Dipayan/DD/MRI_data/',filename,'train')
-    val_data_path = os.path.join('/home/cvpr/Documents/Dipayan/DD/MRI_data/',filename,'val')
-    model_path = os.path.join('/home/cvpr/Documents/Dipayan/DD/saved_models')
+    print('\n\n\n Training for :  '+filename+'_64 kernels')
+    train_data_path = os.path.join(base_path,'MRI_data',filename,'train')
+    val_data_path = os.path.join(base_path,'MRI_data',filename,'val')
+    model_path = os.path.join(base_path,'saved_models')
     
     print('Initiating dataloaders...')
     train_loader = MRI_LR_video_dataloader(filepath=train_data_path, batch_size=1, num_workers=0)
@@ -119,25 +115,25 @@ for file_idx, filename in enumerate(datafiles):
     train_mean, train_std, val_mean, val_std = 0.002432013163343072, 0.05011998862028122, 0.002428024308755994, 0.04998859390616417
 
     #model_save_name = input('Enter model name:')
-    model_save_name = filename+'128_kernels'+'.pt'
+    model_save_name = filename+'64_kernels'+'.pt'
 
     cnn_model = CNNModel(input_channel=input_channels[file_idx]).to(device)
-    total_samples = 58215 + 15716 + 74953
-    #weights = [1 - (58215/total_samples), 1 - (15716/total_samples), 1 - (74953/total_samples)]
     weights = [0.18, 0.67, 0.115]
     class_weights = torch.FloatTensor(weights).to(device)
     criterion = nn.CrossEntropyLoss(weight=class_weights)
     optimizer = optim.Adam(cnn_model.parameters(), lr=0.001) # , weight_decay=0.05)
     lr_schedular = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', factor=0.5, patience=3, verbose=True)
     batch_size = 64
-    #print([(p.size(),p.requires_grad) for p in cnn_model.parameters()])
+
     print('CNN Model made.')
 
     train_loss, val_loss = [], []
     train_acc, val_acc = [], []
     print('Starting Training...')
-
-    for epoch in range(250):
+    print('Validation will be done after every 5 training epochs...')
+    print('After every 50 training epochs, a loss-accuracy plot image will be saved in the base folder...')
+    
+    for epoch in range(500):
 
             print('\nEpoch:',epoch)
 
@@ -184,7 +180,7 @@ for file_idx, filename in enumerate(datafiles):
 
                         MRI_CNN_label_buffer, MRI_CNN_pred_buffer = [], []
                         samples = 0
-                #print('Video end')
+                # Video end
 
             print('Example output:')
             print([torch.argmax(p.detach(),dim=1).item() for p in MRI_CNN_pred_buffer],':Pred')
@@ -239,13 +235,11 @@ for file_idx, filename in enumerate(datafiles):
                             pred_list.append(torch.argmax(torch.cat(MRI_CNN_pred_buffer,dim=0), dim=1).cpu().numpy())
                             targets_list.append(torch.tensor(MRI_CNN_label_buffer).cpu().numpy())
 
-                            #print([torch.argmax(p.detach(),dim=1).item() for p in MRI_CNN_pred_buffer])
-                            #print([l.item() for l in MRI_CNN_label_buffer])
-
                             MRI_CNN_label_buffer, MRI_CNN_pred_buffer = [], []
                             samples = 0
                     
-                    #print('Video end')
+                    #Video end
+                    
                 print('Example output:')
                 print([torch.argmax(p.detach(),dim=1).item() for p in MRI_CNN_pred_buffer],':Pred')
                 print([l.item() for l in MRI_CNN_label_buffer],':GT')
@@ -269,7 +263,7 @@ for file_idx, filename in enumerate(datafiles):
             if epoch % 50 == 0:
 
                 data = [train_loss, val_loss, train_acc, val_acc]
-                np.save(os.path.join('plots',filename+'_'+str(epoch)), data)
+                np.save(os.path.join(filename+'_'+str(epoch)), data)
 
                 plt.subplot(2,2,1)
                 plt.title('Train Loss')
@@ -284,6 +278,6 @@ for file_idx, filename in enumerate(datafiles):
                 plt.title('Val Accuracy')
                 plt.plot(val_acc)
                 
-                plt.savefig(os.path.join('plots',filename+'_'+str(epoch)+'.png'))
+                plt.savefig(os.path.join(filename+'_'+str(epoch)+'.png'))
                 plt.clf()
     
