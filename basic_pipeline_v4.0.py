@@ -38,10 +38,8 @@ def get_MRI_data(spike_train):
 def generate_MRI_dataset(dataloader, step_between_clips, frames_per_clip, Te, start_id=0, val=False):
 	#File to save dataset to
 	if not val:
-		autoencoded_path = 'autoencoded_data/train/'
 		cubic_path_1 = 'MRI_data/PLSM_readout_100timesteps/train/'
 	else:
-		autoencoded_path = 'autoencoded_data/val/'
 		cubic_path_1 = 'MRI_data/PLSM_readout_100timesteps/val/'
 
 	video_idx, total_clip_idx = start_id, start_id
@@ -102,6 +100,7 @@ if __name__ == '__main__':
 	print('\nUsing : ',device)
 	print('Ensure that you have created two empty folders named 'train' and 'val' inside location MRI_data/PLSM_readout_100timesteps/')
 	
+	#If problem occurs due to base_path, removethe base_path variables from the os.path.join() function in lines 107 and 108
 	print('Path example : home/username/Downlaods/Parallelized_LSM_for_Unintentional_Action_Recognition')
 	base_path = input('Enter absolute path to the PLSM folder (including PLSM folder name) as mentioned in the example above:')
 	      
