@@ -100,6 +100,7 @@ if __name__ == '__main__':
 	device = torch.device('cuda:0')
 
 	print('\nUsing : ',device)
+	print('Ensure that you have created two empty folders named 'train' and 'val' inside location MRI_data/PLSM_readout_100timesteps/')
 	
 	print('Path example : home/username/Downlaods/Parallelized_LSM_for_Unintentional_Action_Recognition')
 	base_path = input('Enter absolute path to the PLSM folder (including PLSM folder name) as mentioned in the example above:')
