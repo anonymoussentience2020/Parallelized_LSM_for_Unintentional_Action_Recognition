@@ -39,14 +39,10 @@ def generate_MRI_dataset(dataloader, step_between_clips, frames_per_clip, Te, st
 	#File to save dataset to
 	if not val:
 		autoencoded_path = 'autoencoded_data/train/'
-		cubic_path_1 = 'MRI_data/ablation_100timesteps/train/'
-		cubic_path_2 = 'MRI_data/ablation_50timesteps/train/'
-		cubic_path_3 = 'MRI_data/ablation_25timesteps/train/'
+		cubic_path_1 = 'MRI_data/PLSM_readout_100timesteps/train/'
 	else:
 		autoencoded_path = 'autoencoded_data/val/'
-		cubic_path_1 = 'MRI_data/ablation_100timesteps/val/'
-		cubic_path_2 = 'MRI_data/ablation_50timesteps/val/'
-		cubic_path_3 = 'MRI_data/ablation_25timesteps/val/'
+		cubic_path_1 = 'MRI_data/PLSM_readout_100timesteps/val/'
 
 	video_idx, total_clip_idx = start_id, start_id
 
@@ -81,18 +77,12 @@ def generate_MRI_dataset(dataloader, step_between_clips, frames_per_clip, Te, st
 
 			#get piece-wise mean spike_count
 			downsampled_scan_1 = get_piecewise_mean_spike_count_data(scan, window_size = 8)
-			downsampled_scan_2 = get_piecewise_mean_spike_count_data(scan, window_size = 16)
-			downsampled_scan_3 = get_piecewise_mean_spike_count_data(scan, window_size = 32)
 			del scan
 			MRI_1 = get_MRI_data(downsampled_scan_1)
-			MRI_2 = get_MRI_data(downsampled_scan_2)
-			MRI_3 = get_MRI_data(downsampled_scan_3)
-			del downsampled_scan_1, downsampled_scan_2, downsampled_scan_3
+			del downsampled_scan_1
 			#save MRI data
 			video_1.append(MRI_1.unsqueeze(0).numpy())
-			video_2.append(MRI_2.unsqueeze(0).numpy())
-			video_3.append(MRI_3.unsqueeze(0).numpy())
-			del MRI_1, MRI_2, MRI_3
+			del MRI_1
 
 			total_clip_idx += 1
 
@@ -102,25 +92,8 @@ def generate_MRI_dataset(dataloader, step_between_clips, frames_per_clip, Te, st
 		video_1  = np.concatenate(video_1)
 		data[:] = [video_1, y]
 		np.save(cubic_path_1+filename+'.npy', data)
-
-		video_2  = np.concatenate(video_2)
-		data[:] = [video_2, y]
-		np.save(cubic_path_2+filename+'.npy', data)
-
-		video_3  = np.concatenate(video_3)
-		data[:] = [video_3, y]
-		np.save(cubic_path_3+filename+'.npy', data)
 		
-		data[:] = [np.concatenate(autoencoded_x), y]
-		np.save(autoencoded_path+filename+'.npy', data)
-
 		video_idx += 1	
-
-		if video_idx == 1:
-			print(video_1.shape, video_2.shape, video_3.shape)
-			del	 video_1, video_2, video_3
-		else:
-			del	 video_1, video_2, video_3
 
 if __name__ == '__main__':
 
@@ -128,16 +101,19 @@ if __name__ == '__main__':
 
 	print('\nUsing : ',device)
 	
-	annotations_path = '/home/cvpr/Documents/Dipayan/DD/PATH/TO/annotations/transition_times.json'
-	datapath = '/home/cvpr/Documents/Dipayan/DD/PATH/TO/datasets'
+	print('Path example : home/username/Downlaods/Parallelized_LSM_for_Unintentional_Action_Recognition')
+	base_path = input('Enter absolute path to the PLSM folder (including PLSM folder name) as mentioned in the example above:')
+	      
+	annotations_path = os.path.join(base_path,'PATH/TO/annotations/transition_times.json')
+	datapath = os.path.join(base_path,'PATH/TO/datasets')
 	cnn_checkpoint_path = 'saved_models/auto_encoder_512_completeData_stateDict.pt'
 
 	#Dataloaders : 16fps, fpc = 16 frames, sbc = 4 frames
 	fps = 16
 	frames_per_clip = 16
 	step_between_clips = 4
-	train_start_id, val_start_id = 0, 647
-	#train_loader = get_video_loader(datapath=datapath, annotations_path=annotations_path, val=False, get_video_wise=True, num_workers=0, fps=fps, frames_per_clip=frames_per_clip, step_between_clips=step_between_clips/fps, start_id=train_start_id)
+	train_start_id, val_start_id = 0, 0
+	train_loader = get_video_loader(datapath=datapath, annotations_path=annotations_path, val=False, get_video_wise=True, num_workers=0, fps=fps, frames_per_clip=frames_per_clip, step_between_clips=step_between_clips/fps, start_id=train_start_id)
 	val_loader = get_video_loader(datapath=datapath, annotations_path=annotations_path, val=True, get_video_wise=True, num_workers=0, fps=fps, frames_per_clip=frames_per_clip, step_between_clips=step_between_clips/fps, start_id=val_start_id)			
 
 	#Load trained autoencoder weights and freeze autoencoder
@@ -166,8 +142,8 @@ if __name__ == '__main__':
 		torch.save(LSM, os.path.join('saved_models',lsm_name))
 	print('\nSpike Encoder and LSM initialized.')
 
-	#Generate dataset for LR : feed-forward through LSM-pipeline
-	#generate_MRI_dataset(dataloader=train_loader, step_between_clips=step_between_clips, frames_per_clip=frames_per_clip, Te=T_enc, val=False, start_id=train_start_id)
+	#Generate dataset : feed-forward through LSM-pipeline
+	generate_MRI_dataset(dataloader=train_loader, step_between_clips=step_between_clips, frames_per_clip=frames_per_clip, Te=T_enc, val=False, start_id=train_start_id)
 	generate_MRI_dataset(dataloader=val_loader, step_between_clips=step_between_clips, frames_per_clip=frames_per_clip, Te=T_enc, val=True, start_id=val_start_id)
 
 		
