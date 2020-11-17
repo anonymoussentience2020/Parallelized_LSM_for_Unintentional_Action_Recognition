@@ -1,4 +1,3 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score, confusion_matrix
