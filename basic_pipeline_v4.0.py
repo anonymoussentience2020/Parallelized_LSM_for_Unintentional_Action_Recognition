@@ -96,7 +96,7 @@ if __name__ == '__main__':
 	device = torch.device('cuda:0')
 
 	print('\nUsing : ',device)
-	print('Ensure that you have created two empty folders named 'train' and 'val' inside location MRI_data/PLSM_readout_100timesteps/')
+	print('Ensure that you have created two empty folders named \'train\' and \'val\' inside location MRI_data/PLSM_readout_100timesteps/')
 	
 	#If problem occurs due to base_path, removethe base_path variables from the os.path.join() function in lines 107 and 108
 	print('Path example : home/username/Downlaods/Parallelized_LSM_for_Unintentional_Action_Recognition')
