@@ -120,7 +120,7 @@ if __name__ == '__main__':
 	cnn.load_model(cnn_checkpoint_path)
 	cnn.freeze_autoencoder()
 	cnn.eval()
-
+	print('\n\nDenseNet-161 and auto-encoder loaded from cache...')
 	#4: Initialize spike-encoder and LSMs
 	T_enc = 50
 	input_range = (0.0, 50)#(min_val, max_val)#(0.0, 1.0)#(0.0, 46.3)#
@@ -139,7 +139,7 @@ if __name__ == '__main__':
 					LIF_Vth=0.1, LIF_tau_m=5, device=device, delay_device=device)
 		torch.save(LSM, os.path.join('saved_models',lsm_name))
 	print('\nSpike Encoder and LSM initialized.')
-
+	print('\n\nStarting data generation using LSM...')
 	#Generate dataset : feed-forward through LSM-pipeline
 	generate_MRI_dataset(dataloader=train_loader, step_between_clips=step_between_clips, frames_per_clip=frames_per_clip, Te=T_enc, val=False, start_id=train_start_id)
 	generate_MRI_dataset(dataloader=val_loader, step_between_clips=step_between_clips, frames_per_clip=frames_per_clip, Te=T_enc, val=True, start_id=val_start_id)
