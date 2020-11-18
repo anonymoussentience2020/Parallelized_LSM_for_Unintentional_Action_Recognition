@@ -9,7 +9,7 @@ import torch.optim as optim
 import time
 import os
 
-from MRI_txt_dataloader import MRI_LR_video_dataloader
+from MRI_dataloader import MRI_LR_video_dataloader
 print('Path example : home/username/Downloads/Parallelized_LSM_for_Unintentional_Action_Recognition')
 base_path = input('Enter the absolute path to the PLSM folder, including the name of the PLSM folder (like above example):')
 device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
@@ -259,7 +259,7 @@ for file_idx, filename in enumerate(datafiles):
             if epoch % 50 == 0:
 
                 data = [train_loss, val_loss, train_acc, val_acc]
-                np.save(os.path.join(filename+'_'+str(epoch)), data)
+                np.save(filename+'_'+str(epoch)+'epochs', data)
 
                 plt.subplot(2,2,1)
                 plt.title('Train Loss')
@@ -274,6 +274,6 @@ for file_idx, filename in enumerate(datafiles):
                 plt.title('Val Accuracy')
                 plt.plot(val_acc)
                 
-                plt.savefig(os.path.join(filename+'_'+str(epoch)+'.png'))
+                plt.savefig(filename+'_'+str(epoch)+'epochs.png')
                 plt.clf()
     
